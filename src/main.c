@@ -3,10 +3,11 @@
 #include <unistd.h>      // for fork, close, etc.
 #include <sys/types.h>   // for pid_t
 #include <signal.h>      // for kill, SIGTERM
-#include <sys/wait.h>    // for waitpid
-#include <errno.h>       // for errno
+#include <sys/wait.h>    
+#include <errno.h>      
+#include <sys/socket.h>
 
-
+#include "ipc.h"
 #include "shared_mem.h"
 #include "semaphores.h"
 #include "master.h"
@@ -18,6 +19,7 @@
 static shared_data_t* shared = NULL;
 static semaphores_t sems;
 static pid_t workers[NUM_WORKERS];
+int worker_channels[NUM_WORKERS][2];
 
 // Unused parameter 'signo' is required by the signal handler function signature.
 void cleanup(int signo) {
@@ -72,19 +74,28 @@ int main() {
 
     // Fork worker processes
     for (int i = 0; i < NUM_WORKERS; i++) {
+        // 1. Create the tunnel (socketpair) BEFORE forking
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, worker_channels[i]) < 0) {
+            perror("socketpair");
+            exit(1);
+        }
+
         pid_t pid = fork();
-        if (pid < 0) {
-            perror("fork");
-            cleanup(0); // If fork fails, clean up resources and exit
-        }
+        if (pid < 0) { /* handle error */ }
+
         if (pid == 0) {
-            // Worker process
-            return start_worker(shared, &sems);
+            // WORKER PROCESS
+            close(worker_channels[i][0]); // Close Master's end
+            
+            // 2. Pass the tunnel FD (worker_channels[i][1]) to the worker
+            return start_worker(shared, &sems, worker_channels[i][1]); 
         }
-        // Master process stores PID
+        
+        // MASTER PROCESS
         workers[i] = pid;
+        close(worker_channels[i][1]); // Close Worker's end
     }
 
-    // Start the master (producer) process
-    return start_master(SERVER_PORT, shared, &sems);
+    // 3. Pass the whole array to Master so it can pick who to talk to
+    return start_master(SERVER_PORT, shared, &sems, worker_channels);
 }

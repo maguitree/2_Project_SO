@@ -4,6 +4,6 @@
 #include "shared_mem.h"
 #include "semaphores.h"
 
-int start_worker(shared_data_t* shared, semaphores_t* sems);
+int start_worker(shared_data_t* shared, semaphores_t* sems, int channel_fd);
 
 #endif

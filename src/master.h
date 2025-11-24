@@ -4,6 +4,6 @@
 #include "shared_mem.h"
 #include "semaphores.h"
 
-int start_master(int port, shared_data_t* shared, semaphores_t* sems);
+int start_master(int port, shared_data_t* shared, semaphores_t* sems, int channels[][2]);
 
 #endif
