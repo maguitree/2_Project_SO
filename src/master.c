@@ -9,7 +9,7 @@
 
 #include "ipc.h"
 
-int start_master(int port, shared_data_t* shared, semaphores_t* sems, int channels[][2]) {
+int start_master(int port, shared_data_t* shared, semaphores_t* sems, int channels[][2], int num_workers) {
     (void)shared;
     (void)sems;
     
@@ -53,7 +53,7 @@ int start_master(int port, shared_data_t* shared, semaphores_t* sems, int channe
         close(client_fd);
 
         // 3. Round Robin: Select next worker
-        current_worker = (current_worker + 1) % 4; 
+        current_worker = (current_worker + 1) % num_workers; 
     }
 
     close(server_fd);

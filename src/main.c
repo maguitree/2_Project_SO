@@ -97,5 +97,5 @@ int main() {
     }
 
     // 3. Pass the whole array to Master so it can pick who to talk to
-    return start_master(SERVER_PORT, shared, &sems, worker_channels);
+    return start_master(SERVER_PORT, shared, &sems, worker_channels, NUM_WORKERS);
 }

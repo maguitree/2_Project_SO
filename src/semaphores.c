@@ -3,6 +3,8 @@
 #include <fcntl.h>
 
 int init_semaphores(semaphores_t* sems, int queue_size) {
+
+    // tecnicamente só precisamos do stats_mutex e do log_mutex mas podemos deixar por enquanto
     sems->empty_slots = sem_open("/ws_empty", O_CREAT, 0666, queue_size);
     sems->filled_slots = sem_open("/ws_filled", O_CREAT, 0666, 0);
     sems->queue_mutex = sem_open("/ws_queue_mutex", O_CREAT, 0666, 1);
